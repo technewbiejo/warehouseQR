@@ -5,13 +5,20 @@
     "paths": {
       "@/*": [
         "./*"
-      ]
+      ],
+      "types": ["expo"],
+      "strict": true,
+      "target": "esnext",
+      "moduleResolution": "node",
+      "jsx": "react-native"
+
     }
   },
   "include": [
     "**/*.ts",
     "**/*.tsx",
     ".expo/types/**/*.ts",
-    "expo-env.d.ts"
+    "expo-env.d.ts",
+    "nativewind-env.d.ts"
   ]
 }

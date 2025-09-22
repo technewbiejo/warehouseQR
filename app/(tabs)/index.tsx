@@ -1,98 +1,264 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import {
+    View,
+    Text,
+    Alert,
+    StyleSheet,
+    Pressable,
+    Animated,
+    Easing,
+} from 'react-native';
+import { CameraView, useCameraPermissions } from 'expo-camera';
+import { useIsFocused } from '@react-navigation/native';
+import { useRouter } from 'expo-router';
+import * as Clipboard from 'expo-clipboard';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Linking from 'expo-linking';
 
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
 
-export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+export default function QRScanner(): React.ReactElement {
+    const [permission, requestPermission] = useCameraPermissions();
+    const [scanned, setScanned] = useState(false);
+    const isFocused = useIsFocused();
+    const router = useRouter();
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
-  );
+    const animation = useRef(new Animated.Value(0)).current;
+
+    useEffect(() => {
+        if (isFocused) {
+            Animated.loop(
+                Animated.sequence([
+                    Animated.timing(animation, {
+                        toValue: 200,
+                        duration: 2000,
+                        easing: Easing.linear,
+                        useNativeDriver: true,
+                    }),
+                    Animated.timing(animation, {
+                        toValue: 0,
+                        duration: 2000,
+                        easing: Easing.linear,
+                        useNativeDriver: true,
+                    }),
+                ])
+            ).start();
+        } else {
+            animation.stopAnimation();
+            animation.setValue(0);
+        }
+    }, [isFocused]);
+
+    const saveToHistory = async (
+        data: string,
+        label: string,
+        source: 'gtext' | 'gsmart'
+    ) => {
+        const timestamp = new Date().toISOString();
+        const entry = { label, data, timestamp, source };
+
+        try {
+            const stored = await AsyncStorage.getItem('qrHistory');
+            const parsed = stored ? JSON.parse(stored) : [];
+            const updated = [entry, ...parsed];
+            await AsyncStorage.setItem('qrHistory', JSON.stringify(updated));
+            console.log('Saved to history:', entry);
+        } catch (error) {
+            console.error('Failed to save history:', error);
+        }
+    };
+
+    const handleBarCodeScanned = async ({ data }: { data: string }) => {
+        if (!scanned) {
+            setScanned(true);
+            await Clipboard.setStringAsync(data);
+
+            const isCommaSeparated = data.split(',').length === 4;
+            const isLikelyURL = /^https?:\/\/|^www\./i.test(data);
+
+            if (isCommaSeparated) {
+                const [id1, part, lot, qty] = data.split(',');
+                await saveToHistory(data, 'Scanned Smart QR', 'gsmart');
+                router.replace({
+                    pathname: '/(tabs)/gsmart',
+                    params: { id1, part, lot, qty },
+                });
+            } else {
+                await saveToHistory(data, 'QR scan', 'gtext');
+
+                if (isLikelyURL) {
+                    Alert.alert(
+                        'Open Link?',
+                        `This QR contains a link:\n${data}\n\nDo you want to open it in your browser?`,
+                        [
+                            {
+                                text: 'Cancel',
+                                style: 'cancel',
+                                onPress: () =>
+                                    router.replace({
+                                        pathname: '/(tabs)/gtext',
+                                        params: { text: data },
+                                    }),
+                            },
+                            {
+                                text: 'Open',
+                                style: 'default',
+                                onPress: () => Linking.openURL(data),
+                            },
+                        ],
+                        { cancelable: true }
+                    );
+                } else {
+                    router.replace({
+                        pathname: '/(tabs)/gtext',
+                        params: { text: data },
+                    });
+
+                    Alert.alert('QR Scanned & Copied ✅', `Content:\n${data}`);
+                }
+            }
+        }
+    };
+
+    const handleCancel = () => {
+        setScanned(false);
+    };
+
+    if (!permission) return <View />;
+    if (!permission.granted) {
+        return (
+            <View style={styles.centered}>
+                <Text style={styles.message}>
+                    We need camera access to scan QR codes
+                </Text>
+                <Pressable onPress={requestPermission} style={styles.button}>
+                    <Text style={styles.buttonText}>Grant Permission</Text>
+                </Pressable>
+            </View>
+        );
+    }
+
+    return (
+        <View style={StyleSheet.absoluteFill}>
+            {isFocused && (
+                <CameraView
+                    facing="back"
+                    onBarcodeScanned={handleBarCodeScanned}
+                    barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
+                    style={StyleSheet.absoluteFill}
+                />
+            )}
+
+            {/* Overlay content */}
+            <View style={styles.overlay}>
+                <Text style={styles.instruction}>
+                    Align the QR code within the frame to scan
+                </Text>
+
+                <View style={styles.frame}>
+                    <Animated.View
+                        style={[
+                            styles.scanLine,
+                            { transform: [{ translateY: animation }] },
+                        ]}
+                    />
+                </View>
+
+                {scanned && (
+                    <View style={styles.buttonRow}>
+                        <Pressable onPress={handleCancel} style={styles.cancelButton}>
+                            <Text style={styles.cancelText}>Cancel Scanning</Text>
+                        </Pressable>
+
+                        <Pressable onPress={() => setScanned(false)} style={styles.scanAgainButton}>
+                            <Text style={styles.scanAgainText}>Scan Again</Text>
+                        </Pressable>
+                    </View>
+                )}
+            </View>
+        </View>
+    );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-  },
+    centered: {
+        flex: 1,
+        backgroundColor: '#000000',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    overlay: {
+        ...StyleSheet.absoluteFillObject,
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingHorizontal: 20,
+        backgroundColor: 'rgba(0,0,0,0.2)',
+    },
+    instruction: {
+        fontSize: 16,
+        color: '#FFFFFF',
+        marginBottom: 20,
+        textAlign: 'center',
+    },
+    frame: {
+        height: 250,
+        width: 250,
+        borderRadius: 16,
+        borderWidth: 2,
+        borderColor: '#093cbd',
+        overflow: 'hidden',
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'transparent',
+    },
+    scanLine: {
+        position: 'absolute',
+        width: '100%',
+        height: 2,
+        backgroundColor: '#7b9ee0',
+    },
+    buttonRow: {
+        flexDirection: 'row',
+        marginTop: 30,
+        gap: 12,
+    },
+    cancelButton: {
+        backgroundColor: '#EF4444',
+        paddingVertical: 10,
+        paddingHorizontal: 20,
+        borderRadius: 8,
+    },
+    cancelText: {
+        color: '#FFFFFF',
+        fontWeight: '600',
+        fontSize: 16,
+    },
+    scanAgainButton: {
+        backgroundColor: '#3B82F6',
+        paddingVertical: 10,
+        paddingHorizontal: 20,
+        borderRadius: 8,
+    },
+    scanAgainText: {
+        color: '#FFFFFF',
+        fontWeight: '600',
+        fontSize: 16,
+    },
+    button: {
+        backgroundColor: '#8B5CF6',
+        paddingVertical: 10,
+        paddingHorizontal: 20,
+        borderRadius: 8,
+        marginTop: 20,
+    },
+    buttonText: {
+        color: '#FFFFFF',
+        fontWeight: '600',
+        fontSize: 16,
+    },
+    message: {
+        fontSize: 16,
+        color: '#FFFFFF',
+        marginBottom: 12,
+        textAlign: 'center',
+    },
 });
