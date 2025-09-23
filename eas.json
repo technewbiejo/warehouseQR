@@ -1,0 +1,21 @@
+{
+  "build": {
+    "joslow": {
+      "android": {
+        "buildType": "apk"
+      }
+    },
+    "joslow2": {
+      "android": {
+        "gradleCommand": ":app:assembleRelease"
+      }
+    },
+    "joslow3": {
+      "developmentClient": true
+    },
+    "joslow4": {
+      "distribution": "internal"
+    },
+    "production": {}
+  }
+}
