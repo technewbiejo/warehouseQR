@@ -51,11 +51,23 @@ const QRScreen = () => {
                     {/* Edit Button */}
                     <TouchableOpacity
                         className="bg-gray-300 px-4 py-2 rounded-full flex-row items-center"
-                        onPress={() =>
-                            router.replace('../gsmart')}
+                        onPress={() => {
+                            // qrData expected: id1,part,lotCombined,qty
+                            const parts = String(qrData ?? '').split(',');
+                            const id1 = parts[0]?.trim() ?? '';
+                            const part = parts[1]?.trim() ?? '';
+                            const lot  = parts[2]?.trim() ?? ''; // e.g., 1811-250515
+                            const qty  = parts[3]?.trim() ?? '';
+
+                            // Navigate explicitly to the gsmart tab/screen with params so fields are prefilled
+                            router.replace({
+                                pathname: '../gsmart',          // keep this path since your Return button already uses it
+                                params: { id1, part, lot, qty } // gsmart.tsx will split lot and set fields
+                            });
+                        }}
                     >
                         <MaterialIcons name="edit" size={20} color="#374151" />
-                        <Text className=" text-gray-800 font-semibold ">Edit</Text>
+                        <Text className="text-gray-800 font-semibold">Edit</Text>
                     </TouchableOpacity>
                 </View>
             </View>
