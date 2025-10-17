@@ -20,7 +20,7 @@ const QRScreen = () => {
 
     return (
 
-        <View className="flex-1 bg-blue-100 justify-center items-center px-4">
+        <View className="flex-1 bg-[#0C0D11] justify-center items-center px-4">
             <View className="bg-white rounded-xl w-full max-w-md p-6 shadow-md items-center">
                 {/* Title */}
                 <Text className="text-2xl font-bold text-gray-800 mb-2">Smart QR Code Result</Text>
@@ -30,9 +30,9 @@ const QRScreen = () => {
 
                 {/* QR Code */}
                 {qrData && (
-                    <ViewShot ref={qrRef} options={{ format: 'png', quality: 1.0 }}>
+                    <ViewShot ref={qrRef} options={{ format: 'png', quality: 2.0 }}>
                         <View collapsable={false}>
-                            <QRCode value={qrData as string} size={200} />
+                            <QRCode value={qrData as string} size={300} />
                         </View>
                     </ViewShot>
                 )}
@@ -44,8 +44,9 @@ const QRScreen = () => {
                 <View className="flex-row justify-center items-center gap-x-4 mt-4">
                     {/* Save Button */}
                     <TouchableOpacity  onPress={() =>
-                        router.replace('../gsmart')} className="bg-purple-600 px-5 py-2 rounded-full">
-                        <Text className="text-white font-semibold text-base">Return</Text>
+                        router.replace('../gsmart')} className="bg-[#D5FF40] px-4 py-2 rounded-full flex-row items-center">
+                        <MaterialIcons name="arrow-back" size={20} color="black" />
+                        <Text className="text-black font-semibold text-base">Return</Text>
                     </TouchableOpacity>
 
                     {/* Edit Button */}

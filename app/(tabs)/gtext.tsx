@@ -3,6 +3,7 @@ import {Text, View, TextInput, TouchableOpacity, ScrollView, Alert} from 'react-
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
+import {cls, GlassCard, InputShell} from '../theme';
 
 
 const GText = () => {
@@ -64,52 +65,36 @@ const GText = () => {
 
     // @ts-ignore
     return (
-
         <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
-            <View className="flex-1 justify-center items-center px-4 relative bg-blue-100">
-                {/* White container */}
-                <View className="bg-white rounded-xl w-full max-w-md p-6 shadow-md min-h-[400px]">
-                    {/* Title */}
-                    <Text className="text-2xl font-bold text-center text-gray-800 mb-2">
-                        Text to QR Code
-                    </Text>
+            <View className={`${cls.screen} relative`}>
+                <GlassCard>
+                    <Text className={cls.heading}>Text to QR Code</Text>
+                    <Text className={cls.subheading}>Enter any text to create a QR code.</Text>
 
-                    {/* Subtitle */}
-                    <Text className="text-center text-gray-600 mb-6">
-                        Enter any text to create a QR code.
-                    </Text>
+                    <Text className={cls.label}>Your Text</Text>
 
-                    {/* Label */}
-                    <Text className="text-gray-700 font-semibold mb-2">Your Text</Text>
+                    <InputShell style={{ paddingVertical: 0 }}>
+                        <TextInput
+                            className={`p-4 h-40 max-h-60 text-white`}
+                            placeholder="e.g., https://example.com"
+                            placeholderTextColor="#9CA3AF"
+                            value={text}
+                            onChangeText={setText}
+                            multiline
+                            textAlignVertical="top"
+                        />
+                    </InputShell>
 
-                    {/* Input */}
-                    <TextInput
-                        className=" border border-gray-300 rounded-lg p-4 h-40 max-h-60  text-gray-800 bg-blue-100 "
-
-                        placeholder="e.g., https://example.com"
-                        placeholderTextColor="#9CA3AF"
-                        value={text}
-                        onChangeText={setText}
-                        multiline
-                        textAlignVertical="top"
-
-                    />
-
-                    {/* Button */}
-                    <TouchableOpacity className="bg-purple-600 rounded-lg py-3 mt-6" onPress={handleGenerate}>
-                        <Text className="text-white text-center font-semibold text-base">
-                            Generate QR Code
-                        </Text>
+                    <TouchableOpacity className={`${cls.btn.primary} ${cls.mt6}`} onPress={handleGenerate}>
+                        <Text className={cls.btnTextOnPrimary}>Generate QR Code</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity className="bg-blue-600 rounded-lg py-3 mt-4" onPress={clearField}>
-                        <Text className="text-white text-center font-semibold text-base">Clear field</Text>
+
+                    <TouchableOpacity className={`${cls.btn.secondary} ${cls.mt4}`} onPress={clearField}>
+                        <Text className={cls.btnTextOnDark}>Clear field</Text>
                     </TouchableOpacity>
-                </View>
+                </GlassCard>
             </View>
-
-
         </ScrollView>
-
     );
 };
 

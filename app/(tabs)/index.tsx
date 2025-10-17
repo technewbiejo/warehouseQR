@@ -204,7 +204,7 @@ const styles = StyleSheet.create({
         width: 250,
         borderRadius: 16,
         borderWidth: 2,
-        borderColor: '#093cbd',
+        borderColor: '#D5FF40',
         overflow: 'hidden',
         justifyContent: 'center',
         alignItems: 'center',
@@ -214,7 +214,7 @@ const styles = StyleSheet.create({
         position: 'absolute',
         width: '100%',
         height: 2,
-        backgroundColor: '#7b9ee0',
+        backgroundColor: '#D5FF40',
     },
     buttonRow: {
         flexDirection: 'row',
@@ -233,7 +233,7 @@ const styles = StyleSheet.create({
         fontSize: 16,
     },
     scanAgainButton: {
-        backgroundColor: '#3B82F6',
+        backgroundColor: '#D5FF40',
         paddingVertical: 10,
         paddingHorizontal: 20,
         borderRadius: 8,
@@ -244,7 +244,7 @@ const styles = StyleSheet.create({
         fontSize: 16,
     },
     button: {
-        backgroundColor: '#8B5CF6',
+        backgroundColor: '#D5FF40',
         paddingVertical: 10,
         paddingHorizontal: 20,
         borderRadius: 8,

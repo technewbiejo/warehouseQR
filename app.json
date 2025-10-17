@@ -1,20 +1,29 @@
 {
   "expo": {
-    "name": "warehouse_qr",
+    "name": "QR Eroom",
     "slug": "warehouse_qr",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/qr.png",
+    "icon": "./assets/images/qreroom.png",
     "scheme": "warehouseqr",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "runtimeVersion": { "policy": "sdkVersion" },
+    "updates": {
+      "url": "https://u.expo.dev/a5fcf515-6c39-4461-a798-f3e05b8415b5"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "a5fcf515-6c39-4461-a798-f3e05b8415b5"
+      }
+    },
     "ios": {
       "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/qr.png",
+        "backgroundColor": "#131321",
+        "foregroundImage": "./assets/images/qreroom.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
@@ -24,19 +33,19 @@
     },
     "web": {
       "output": "static",
-      "favicon": "./assets/images/qr.png"
+      "favicon": "./assets/images/qreroom.png"
     },
     "plugins": [
       "expo-router",
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/qr.png",
+          "image": "./assets/images/qreroom.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff",
+          "backgroundColor": "#131321",
           "dark": {
-            "backgroundColor": "#000000"
+            "backgroundColor": "#131321"
           }
         }
       ]
@@ -50,6 +59,7 @@
       "eas": {
         "projectId": "a5fcf515-6c39-4461-a798-f3e05b8415b5"
       }
-    }
+    },
+    "owner": "joslow"
   }
 }

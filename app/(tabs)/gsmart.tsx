@@ -1,28 +1,32 @@
-import { useCallback, useState, useEffect } from 'react';
+import { useCallback, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert, Platform } from 'react-native';
 import { useFocusEffect, useRouter, useLocalSearchParams } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Ionicons } from '@expo/vector-icons';
+import { cls, GlassCard } from '../theme';
 
 const pad2 = (n: number) => n.toString().padStart(2, '0');
-const toYYMMDD = (d: Date) => `${pad2(d.getFullYear() % 100)}${pad2(d.getMonth() + 1)}${pad2(d.getDate())}`;
+const toYYMMDD = (d: Date) =>
+    `${pad2(d.getFullYear() % 100)}${pad2(d.getMonth() + 1)}${pad2(d.getDate())}`;
 
 const GSmart = () => {
     const router = useRouter();
 
     const [id1, setId1] = useState('');
     const [part, setPart] = useState('');
-    // NEW: split Lot Code into prefix + date (YYMMDD)
-    const [lotPrefix, setLotPrefix] = useState(''); // 4 digits
-    const [lotDate, setLotDate] = useState('');     // YYMMDD (6 digits)
+    const [lotPrefix, setLotPrefix] = useState('');
+    const [lotDate, setLotDate] = useState('');
     const [qty, setQty] = useState('');
 
-    // Date picker state
     const [showPicker, setShowPicker] = useState(false);
     const [pickerDate, setPickerDate] = useState<Date>(new Date());
 
-    const { reset, id1: rawId1, part: rawPart, lot: rawLot, qty: rawQty } = useLocalSearchParams();
+    // focused field tracking
+    const [focused, setFocused] = useState<string | null>(null);
+
+    const { reset, id1: rawId1, part: rawPart, lot: rawLot, qty: rawQty } =
+        useLocalSearchParams();
     const pId1 = typeof rawId1 === 'string' ? rawId1 : '';
     const pPart = typeof rawPart === 'string' ? rawPart : '';
     const pLot = typeof rawLot === 'string' ? rawLot : '';
@@ -37,20 +41,12 @@ const GSmart = () => {
     };
 
     const digitsOnly = (s: string) => s.replace(/\D+/g, '');
-
-    // Keep inputs constrained
     const handlePrefixChange = (s: string) => setLotPrefix(digitsOnly(s).slice(0, 4));
     const handleDateChange = (s: string) => setLotDate(digitsOnly(s).slice(0, 6));
 
-    // Combine for QR
-    const getCombinedLot = () => {
-        if (lotPrefix && lotDate) return `${lotPrefix}-${lotDate}`;
-        return ''; // only combine when both present
-    };
+    const getCombinedLot = () => (lotPrefix && lotDate ? `${lotPrefix}-${lotDate}` : '');
 
-    // Generate QR and navigate to qr.tsx
     const handleGenerate = async () => {
-        // Basic validation for new fields
         if (!/^\d{4}$/.test(lotPrefix)) {
             Alert.alert('Lot Prefix', 'Please enter a 4-digit lot prefix.');
             return;
@@ -63,35 +59,30 @@ const GSmart = () => {
         const lotCombined = getCombinedLot();
         const qrData = `${id1},${part},${lotCombined},${qty}`;
 
-        await new Promise((resolve) => setTimeout(resolve, 100)); // small delay
+        await new Promise((r) => setTimeout(r, 100));
 
-        // Save to history then navigate
         const newEntry = {
             label: 'Smart QR',
             data: qrData,
             timestamp: new Date().toLocaleString(),
-            source: 'gsmart',
+            source: 'gsmart' as const,
         };
+
         try {
             const existing = await AsyncStorage.getItem('qrHistory');
             const history = existing ? JSON.parse(existing) : [];
             history.unshift(newEntry);
             await AsyncStorage.setItem('qrHistory', JSON.stringify(history));
-            router.push({
-                pathname: '/result/qr',
-                params: { qrData, id1, part, lot: lotCombined, qty },
-            });
-        } catch (error) {
-            console.error('Failed to save history:', error);
-            // Navigate anyway
-            router.push({
-                pathname: '/result/qr',
-                params: { qrData, id1, part, lot: lotCombined, qty },
-            });
+        } catch (e) {
+            console.error('Failed to save history:', e);
         }
+
+        router.push({
+            pathname: '/result/qr',
+            params: { qrData, id1, part, lot: lotCombined, qty },
+        });
     };
 
-    // Reset form if reset param is true OR preload params
     useFocusEffect(
         useCallback(() => {
             if (reset === 'true') {
@@ -100,13 +91,12 @@ const GSmart = () => {
                 setId1(pId1);
                 setPart(pPart);
                 setQty(pQty);
-                // If incoming lot already combined, split it; else try to parse as raw
-                const m = typeof pLot === 'string' ? pLot.match(/^(\d{4})-(\d{6})$/) : null;
+                const m =
+                    typeof pLot === 'string' ? pLot.match(/^(\d{4})-(\d{6})$/) : null;
                 if (m) {
                     setLotPrefix(m[1]);
                     setLotDate(m[2]);
                 } else {
-                    // fallback: if they passed a 10-char (4+6) without hyphen
                     const digits = digitsOnly(pLot);
                     if (digits.length === 10) {
                         setLotPrefix(digits.slice(0, 4));
@@ -120,7 +110,6 @@ const GSmart = () => {
         }, [reset, pId1, pPart, pLot, pQty])
     );
 
-    // Handle native date picker selection
     const onChangePicker = (_: any, selected?: Date) => {
         if (Platform.OS === 'android') setShowPicker(false);
         if (selected) {
@@ -129,90 +118,122 @@ const GSmart = () => {
         }
     };
 
-    return (
-        <View className="flex-1 bg-blue-100 justify-center items-center px-4">
-            <View className="bg-white rounded-xl w-full max-w-md p-4 shadow-md min-h-[460px]">
-                <Text className="text-2xl font-bold text-center text-gray-800 mb-2">Smart Scan QR Code</Text>
-                <Text className="text-center text-gray-600 mb-6">Enter structured data to generate a QR code.</Text>
+    // Dynamic border color when input focused
+    const inputStyle = (name: string) => ({
+        borderWidth: 1.5,
+        borderColor: focused === name ? '#D5FF40' : 'rgba(255,255,255,0.12)',
+        borderRadius: 12,
+        backgroundColor: '#0F1115',
+    });
 
-                <View className="space-y-4">
-                    {/* ID code #1 */}
-                    <Text className="text-gray-700 mb-1">ID Code</Text>
-                    <TextInput
-                        className="bg-blue-100 border rounded-lg px-4 py-4 text-base text-gray-800"
-                        placeholder="ID Code #1"
-                        placeholderTextColor="#9CA3AF"
-                        autoCapitalize="characters"
-                        value={id1}
-                        onChangeText={(text) => setId1(text.toUpperCase())}
-                    />
-                    {/* Part Number */}
-                    <Text className="text-gray-700 mb-1">Part Number</Text>
-                    <TextInput
-                        className="bg-blue-100 border rounded-lg px-4 py-4 text-base text-gray-800"
-                        placeholder="Part Number"
-                        placeholderTextColor="#9CA3AF"
-                        autoCapitalize="characters"
-                        value={part}
-                        onChangeText={(text) => setPart(text.toUpperCase())}
-                    />
-                    {/* NEW: Lot Code split */}
-                    <Text className="text-gray-700 mb-1">Lot Code</Text>
-                    {/* Prefix & Date row */}
-                    <View className="flex-row gap-3">
-                        <View className="flex-1">
-                            <Text className="text-gray-600 mb-1">Prefix (4 digits)</Text>
+    return (
+        <View className={cls.screen}>
+            <GlassCard>
+                <Text className={cls.heading}>Smart Scan QR Code</Text>
+                <Text className={cls.subheading}>
+                    Enter the details below to create a structured QR code.
+                </Text>
+
+                <View className={cls.group}>
+                    {/* Code Part */}
+                    <Text className={cls.label}>Code Part</Text>
+                    <View style={inputStyle('id1')}>
+                        <TextInput
+                            className="p-4 text-white"
+                            placeholder="e.g., CN2001233342"
+                            placeholderTextColor="#9CA3AF"
+                            autoCapitalize="characters"
+                            value={id1}
+                            onFocus={() => setFocused('id1')}
+                            onBlur={() => setFocused(null)}
+                            onChangeText={(t) => setId1(t.toUpperCase())}
+                        />
+                    </View>
+
+                    {/* ID Part Number */}
+                    <Text className={cls.label}>ID Part Number</Text>
+                    <View style={inputStyle('part')}>
+                        <TextInput
+                            className="p-4 text-white"
+                            placeholder="e.g., C10233124354"
+                            placeholderTextColor="#9CA3AF"
+                            autoCapitalize="characters"
+                            value={part}
+                            onFocus={() => setFocused('part')}
+                            onBlur={() => setFocused(null)}
+                            onChangeText={(t) => setPart(t.toUpperCase())}
+                        />
+                    </View>
+
+                    {/* Lot Code */}
+                    <Text className={cls.label}>Lot Code</Text>
+                    <View className="flex-row items-center gap-3">
+                        {/* Prefix */}
+                        <View style={[{ flex: 1 }, inputStyle('lotPrefix')]}>
                             <TextInput
-                                className="bg-blue-100 border rounded-lg px-4 py-4 text-base text-gray-800"
-                                placeholder="e.g. 1811"
+                                className="p-4 text-white text-center"
+                                placeholder="1811"
                                 placeholderTextColor="#9CA3AF"
                                 value={lotPrefix}
+                                onFocus={() => setFocused('lotPrefix')}
+                                onBlur={() => setFocused(null)}
                                 onChangeText={handlePrefixChange}
                                 keyboardType="numeric"
                                 maxLength={4}
                             />
                         </View>
 
-                        <View className="flex-1">
-                            <Text className="text-gray-600 mb-1">Date (YYMMDD)</Text>
-                            <View className="flex-row items-center bg-blue-100 border rounded-lg px-3">
+                        <Text className="text-gray-500">-</Text>
+
+                        {/* Date (YYMMDD) with icon */}
+                        <View style={[{ flex: 2 }, inputStyle('lotDate')]}>
+                            <View className="flex-row items-center">
+                                <TouchableOpacity
+                                    onPress={() => setShowPicker(true)}
+                                    accessibilityLabel="Open date picker"
+                                    className="px-3 py-3"
+                                >
+                                    <Ionicons name="calendar-outline" size={20} color="#9CA3AF" />
+                                </TouchableOpacity>
                                 <TextInput
-                                    className="flex-1 py-4 text-base text-gray-800"
-                                    placeholder="e.g. 250515"
+                                    className="flex-1 pr-3 py-3 text-base text-white"
+                                    placeholder="YYMMDD"
                                     placeholderTextColor="#9CA3AF"
                                     value={lotDate}
+                                    onFocus={() => setFocused('lotDate')}
+                                    onBlur={() => setFocused(null)}
                                     onChangeText={handleDateChange}
                                     keyboardType="numeric"
                                     maxLength={6}
                                 />
-                                <TouchableOpacity onPress={() => setShowPicker(true)} accessibilityLabel="Open date picker" className="pl-2 py-2">
-                                    <Ionicons name="calendar-outline" size={22} />
-                                </TouchableOpacity>
                             </View>
                         </View>
                     </View>
 
                     {/* Quantity */}
-                    <Text className="text-gray-700 mb-1">Quantity</Text>
-                    <TextInput
-                        className="bg-blue-100 border rounded-lg px-4 py-4 text-base text-gray-800"
-                        placeholder="Quantity"
-                        placeholderTextColor="#9CA3AF"
-                        value={qty}
-                        onChangeText={setQty}
-                        keyboardType="numeric"
-                    />
+                    <Text className={cls.label}>Quantity</Text>
+                    <View style={inputStyle('qty')}>
+                        <TextInput
+                            className="p-4 text-white"
+                            placeholder="e.g., 3000"
+                            placeholderTextColor="#9CA3AF"
+                            value={qty}
+                            onFocus={() => setFocused('qty')}
+                            onBlur={() => setFocused(null)}
+                            onChangeText={setQty}
+                            keyboardType="numeric"
+                        />
+                    </View>
                 </View>
 
-                <TouchableOpacity className="bg-purple-600 rounded-lg py-3 mt-6" onPress={handleGenerate}>
-                    <Text className="text-white text-center font-semibold text-base">Generate QR Code</Text>
+                <TouchableOpacity
+                    className={`${cls.btn.primary} ${cls.mt6}`}
+                    onPress={handleGenerate}
+                >
+                    <Text className={cls.btnTextOnPrimary}>Generate QR Code</Text>
                 </TouchableOpacity>
-                <TouchableOpacity className="bg-blue-600 rounded-lg py-3 mt-4" onPress={clearField}>
-                    <Text className="text-white text-center font-semibold text-base">Clear field</Text>
-                </TouchableOpacity>
-            </View>
+            </GlassCard>
 
-            {/* iOS shows inline modal; Android shows spinner dialog */}
             {showPicker && (
                 <DateTimePicker
                     value={pickerDate}
