@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert, Platform } from 'react-native';
 import { useFocusEffect, useRouter, useLocalSearchParams } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -231,6 +231,10 @@ const GSmart = () => {
                     onPress={handleGenerate}
                 >
                     <Text className={cls.btnTextOnPrimary}>Generate QR Code</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity className={`${cls.btn.secondary} ${cls.mt4}`} onPress={clearField}>
+                    <Text className={cls.btnTextOnDark}>Clear field</Text>
                 </TouchableOpacity>
             </GlassCard>
 
