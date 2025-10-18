@@ -3,10 +3,19 @@ import { View, Text, TouchableOpacity, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { colors } from './theme';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 
 export default function SplashScreen() {
     const router = useRouter();
+
+    const onGetStarted = async () => {
+        // mark onboarding as done
+        await AsyncStorage.setItem('hasOnboarded', 'true');
+        // go to your first tab (change to index if you prefer the camera)
+        router.replace('/(tabs)/gsmart'); // or '/(tabs)/index'
+    };
+
 
     return (
         <LinearGradient
@@ -70,7 +79,7 @@ export default function SplashScreen() {
 
                         {/* Keep original lime button (same color/shape/handler) */}
                         <TouchableOpacity
-                            onPress={() => router.replace('..//(tabs)/gsmart')}
+                            onPress={onGetStarted}
                             activeOpacity={0.85}
                             style={{
                                 backgroundColor: colors.lime, // same lime
