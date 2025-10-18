@@ -16,11 +16,8 @@
     "scheme": "warehouseqr",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
-    "runtimeVersion": { "policy": "sdkVersion" },
-
-
+    "runtimeVersion": { "policy": "sdkVersion" }
     },
-
     "updates": {
       "url": "https://u.expo.dev/a5fcf515-6c39-4461-a798-f3e05b8415b5"
     },
