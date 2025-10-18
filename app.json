@@ -2,6 +2,14 @@
   "expo": {
     "name": "QR Eroom",
     "slug": "warehouse_qr",
+    "splash": {
+      "image": "./assets/images/qreroom.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#131321",
+      "dark": {
+        "image": "./assets/images/qreroom.png",
+        "backgroundColor": "#131321"
+      },
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/qreroom.png",
@@ -10,14 +18,7 @@
     "newArchEnabled": true,
     "runtimeVersion": { "policy": "sdkVersion" },
 
-    "splash": {
-      "image": "./assets/images/qreroom.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#131321",
-      "dark": {
-        "image": "./assets/images/qreroom.png",
-        "backgroundColor": "#131321"
-      }
+
     },
 
     "updates": {
