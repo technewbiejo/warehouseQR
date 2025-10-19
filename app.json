@@ -10,13 +10,15 @@
         "image": "./assets/images/qreroom.png",
         "backgroundColor": "#131321"
       },
-    "version": "1.0.0",
-    "orientation": "portrait",
-    "icon": "./assets/images/qreroom.png",
-    "scheme": "warehouseqr",
-    "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
-    "runtimeVersion": { "policy": "sdkVersion" }
+      "version": "1.0.0",
+      "orientation": "portrait",
+      "icon": "./assets/images/qreroom.png",
+      "scheme": "warehouseqr",
+      "userInterfaceStyle": "automatic",
+      "newArchEnabled": true,
+      "runtimeVersion": {
+        "policy": "sdkVersion"
+      }
     },
     "updates": {
       "url": "https://u.expo.dev/a5fcf515-6c39-4461-a798-f3e05b8415b5"
@@ -26,11 +28,9 @@
         "projectId": "a5fcf515-6c39-4461-a798-f3e05b8415b5"
       }
     },
-
     "ios": {
       "supportsTablet": true
     },
-
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#131321",
@@ -42,12 +42,10 @@
       "predictiveBackGestureEnabled": false,
       "package": "com.joslow.joqrwarehouse"
     },
-
     "web": {
       "output": "static",
       "favicon": "./assets/images/qreroom.png"
     },
-
     "plugins": [
       "expo-router",
       [
@@ -56,17 +54,21 @@
           "image": "./assets/images/qreroom.png",
           "imageWidth": 100,
           "resizeMode": "contain",
-          "backgroundColor": "#FFFFF",
-          "dark": { "backgroundColor": "#131321" }
+          "backgroundColor": "#FFF",
+          "dark": {
+            "backgroundColor": "#131321"
+          }
         }
-      ]
+      ],
+      "expo-web-browser"
     ],
-
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
     },
-
-    "owner": "joslow"
+    "owner": "joslow",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    }
   }
 }

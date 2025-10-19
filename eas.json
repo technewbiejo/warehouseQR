@@ -3,19 +3,25 @@
     "joslow": {
       "android": {
         "buildType": "apk"
-      }
+      },
+      "channel": "joslow"
     },
     "joslow2": {
       "android": {
         "gradleCommand": ":app:assembleRelease"
-      }
+      },
+      "channel": "joslow2"
     },
     "joslow3": {
-      "developmentClient": true
+      "developmentClient": true,
+      "channel": "joslow3"
     },
     "joslow4": {
-      "distribution": "internal"
+      "distribution": "internal",
+      "channel": "joslow4"
     },
-    "production": {}
+    "production": {
+      "channel": "production"
+    }
   }
 }
