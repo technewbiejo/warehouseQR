@@ -77,8 +77,8 @@ export const cls = {
     btnTextOnDark: `text-white text-center font-semibold text-base`,
 
     // History page
-    historyTitle: `text-3xl font-extrabold text-[#FAFAFA] mb-2 text-left`,
-    historySubtitle: `text-base text-[#9CA3AF] mb-4 text-left`,
+    historyTitle: `text-3xl font-extrabold text-[#FAFAFA] mb-2 text-center `,
+    historySubtitle: `text-base text-[#9CA3AF] mb-4 text-center`,
 
     historyListWrapper: `mt-2`,
     historyEmptyWrap: `flex-1 items-center justify-center px-6 py-10`,

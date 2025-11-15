@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useCallback, useState } from 'react';
-import { View, Text, TouchableOpacity, Alert, SafeAreaView, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, Alert, SafeAreaView, ScrollView, TextInput } from 'react-native';
+
 import { useRouter } from 'expo-router';
 import * as Clipboard from 'expo-clipboard';
 import { useFocusEffect } from '@react-navigation/native';
@@ -20,6 +21,7 @@ type HistoryEntry = {
 
 const HistoryScreen = () => {
     const [history, setHistory] = useState<HistoryEntry[]>([]);
+    const [search, setSearch] = useState(''); //  search text
     const router = useRouter();
 
     const handleCopy = (data: string) => {
@@ -51,6 +53,20 @@ const HistoryScreen = () => {
         }, [])
     );
 
+    const normalizedSearch = search.trim().toLowerCase();
+    const filteredHistory = !normalizedSearch
+        ? history                          // 👉 if search empty, show ALL
+        : history.filter((entry) => {
+            if (entry.source === 'gsmart') {
+                // data looks like: id1,part,lot,qty
+                const [, part] = entry.data.split(',');
+                return part?.toLowerCase().includes(normalizedSearch);
+            }
+            // you can choose:
+            // return true;   // keep non-gsmart entries even when searching
+            return false;     // or hide non-gsmart entries while searching
+        });
+
     const showConfirmClear = () => {
         Alert.alert(
             'Are you sure?',
@@ -76,18 +92,50 @@ const HistoryScreen = () => {
         } catch (error) {
             console.error('Failed to clear history:', error);
         }
+
+
     };
 
     return (
         <SafeAreaView className={cls.screen}>
             <GlassCard>
-                <Text className={cls.historyTitle}>History</Text>
+                <Text className={cls.historyTitle }>History</Text>
                 <Text className={cls.historySubtitle}>A log of your scanned and generated QR codes.</Text>
+
+                {/* 🔍 Search Bar */}
+                <View
+                    style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        borderWidth: 1,
+                        borderColor: 'rgba(255,255,255,0.15)',
+                        borderRadius: 12,
+                        paddingHorizontal: 12,
+                        paddingVertical: 6,
+                        marginTop: 12,
+                        marginBottom: 10,
+                    }}
+                >
+                    <MaterialIcons
+                        name="search"
+                        size={18}
+                        color="#9CA3AF"
+                        style={{ marginRight: 8 }}
+                    />
+                    <TextInput
+                        style={{ flex: 1, color: 'white', paddingVertical: 4 }}
+                        placeholder="Search ID Part Number..."
+                        placeholderTextColor="#9CA3AF"
+                        value={search}
+                        onChangeText={setSearch}   // 👈 this updates search state
+                        autoCapitalize="characters"
+                    />
+                </View>
 
                 {/* Scroll INSIDE the card */}
                 <View style={{ height: LIST_HEIGHT, marginBottom: 12 }}>
                     <FlatList
-                        data={history}
+                        data={filteredHistory}
                         keyExtractor={(_, idx) => String(idx)}
                         nestedScrollEnabled
                         showsVerticalScrollIndicator={false}

@@ -13,6 +13,9 @@ const toYYMMDD = (d: Date) =>
 const GSmart = () => {
     const router = useRouter();
 
+    const alphaNumeric = (s: string) => s.replace(/[^0-9A-Za-z]/g, '');
+
+
     const [id1, setId1] = useState('');
     const [part, setPart] = useState('');
     const [lotPrefix, setLotPrefix] = useState('');
@@ -136,7 +139,7 @@ const GSmart = () => {
 
                 <View className={cls.group}>
                     {/* Code Part */}
-                    <Text className={cls.label}>Code Part</Text>
+                    <Text className={cls.label}>Manufactured Part Number ( PO )</Text>
                     <View style={inputStyle('id1')}>
                         <TextInput
                             className="p-4 text-white"
@@ -146,8 +149,23 @@ const GSmart = () => {
                             value={id1}
                             onFocus={() => setFocused('id1')}
                             onBlur={() => setFocused(null)}
-                            onChangeText={(t) => setId1(t.toUpperCase())}
+                            onChangeText={(t) => setId1(alphaNumeric(t).toUpperCase())}
                         />
+                        {/* Clear icon in input field */}
+                        {id1.length > 0 && (
+                            <TouchableOpacity
+                                onPress={() => setId1('')}
+                                style={{
+                                    position: "absolute",
+                                    right: 12,
+                                    top: "50%",
+                                    transform: [{ translateY: -10 }],
+                                }}
+                            >
+                                <Ionicons name="trash-outline" size={15} color="#9CA3AF" />
+                            </TouchableOpacity>
+                        )}
+
                     </View>
 
                     {/* ID Part Number */}
@@ -161,8 +179,22 @@ const GSmart = () => {
                             value={part}
                             onFocus={() => setFocused('part')}
                             onBlur={() => setFocused(null)}
-                            onChangeText={(t) => setPart(t.toUpperCase())}
+                            onChangeText={(t) => setPart(alphaNumeric(t).toUpperCase())}
                         />
+                        {/* Clear icon in input field */}
+                        {part.length > 0 && (
+                            <TouchableOpacity
+                                onPress={() => setPart('')}
+                                style={{
+                                    position: "absolute",
+                                    right: 12,
+                                    top: "50%",
+                                    transform: [{ translateY: -10 }],
+                                }}
+                            >
+                                <Ionicons name="trash-outline" size={15} color="#9CA3AF" />
+                            </TouchableOpacity>
+                        )}
                     </View>
 
                     {/* Lot Code */}
@@ -181,6 +213,20 @@ const GSmart = () => {
                                 keyboardType="numeric"
                                 maxLength={4}
                             />
+                            {/* Clear icon in input field */}
+                            {lotPrefix.length > 0 && (
+                                <TouchableOpacity
+                                    onPress={() => setLotPrefix('')}
+                                    style={{
+                                        position: "absolute",
+                                        right: 12,
+                                        top: "50%",
+                                        transform: [{ translateY: -10 }],
+                                    }}
+                                >
+                                    <Ionicons name="trash-outline" size={15} color="#9CA3AF" />
+                                </TouchableOpacity>
+                            )}
                         </View>
 
                         <Text className="text-gray-500">-</Text>
@@ -223,6 +269,20 @@ const GSmart = () => {
                             onChangeText={setQty}
                             keyboardType="numeric"
                         />
+                        {/* Clear icon in input field */}
+                        {qty.length > 0 && (
+                            <TouchableOpacity
+                                onPress={() => setQty('')}
+                                style={{
+                                    position: "absolute",
+                                    right: 12,
+                                    top: "50%",
+                                    transform: [{ translateY: -10 }],
+                                }}
+                            >
+                                <Ionicons name="trash-outline" size={15} color="#9CA3AF" />
+                            </TouchableOpacity>
+                        )}
                     </View>
                 </View>
 
