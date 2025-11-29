@@ -51,7 +51,7 @@ export default function QRScanner(): React.ReactElement {
     const saveToHistory = async (
         data: string,
         label: string,
-        source: 'gtext' | 'gsmart'
+        source: 'gtext' | 'gsmart' | 'icbin'
     ) => {
         const timestamp = new Date().toISOString();
         const entry = { label, data, timestamp, source };
@@ -67,6 +67,33 @@ export default function QRScanner(): React.ReactElement {
         }
     };
 
+    const parseIcBinPayload = (raw: string) => {
+        const segments = raw.split('/');
+        // Format: DEVICE/ERP/MARKING/QUANTITY/TESTPROGRAM/BIN/DATE[/SERIAL]
+        // So we expect 7 segments (without serial) or 8 segments (with serial)
+        if (segments.length < 7 || segments.length > 8) return null;
+
+        const [device, erp, marking, quantity, testProgram, binValue, dateValue, serialValue] =
+            segments.map((seg) => seg?.trim() ?? '');
+
+        if (!device || !erp) return null;
+        if (!marking || !testProgram || !binValue || !dateValue || !quantity) return null;
+        if (!/^\d+$/.test(quantity)) return null;
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(dateValue)) return null;
+        if (!/^\d+$/.test(binValue)) return null;
+
+        return {
+            device,
+            erp,
+            marking,
+            quantity,
+            testProgram,
+            bin: binValue,
+            date: dateValue,
+            serial: serialValue ?? '',
+        };
+    };
+
     const handleBarCodeScanned = async ({ data }: { data: string }) => {
         if (!scanned) {
             setScanned(true);
@@ -74,6 +101,35 @@ export default function QRScanner(): React.ReactElement {
 
             const isCommaSeparated = data.split(',').length === 4;
             const isLikelyURL = /^https?:\/\/|^www\./i.test(data);
+            const icBinPayload = parseIcBinPayload(data);
+
+            if (icBinPayload) {
+                const { device, erp, marking, quantity, testProgram, bin, date, serial } =
+                    icBinPayload;
+                await saveToHistory(data, 'Scanned IC Bin', 'icbin');
+                
+                const params: Record<string, string> = {
+                    device,
+                    erp,
+                    marking,
+                    quantity,
+                    testProgram,
+                    bin,
+                    date,
+                };
+                // Include serial only if it exists (optional field)
+                if (serial && serial.trim()) {
+                    params.serial = serial;
+                }
+                
+                router.replace({
+                    pathname: '/(tabs)/icbin',
+                    params,
+                });
+                
+                Alert.alert('IC Bin QR Scanned ✅', `Navigating to IC Bin form with scanned data.`);
+                return;
+            }
 
             if (isCommaSeparated) {
                 const [id1, part, lot, qty] = data.split(',');

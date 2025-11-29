@@ -35,7 +35,26 @@ const GText = () => {
         try {
             const existing = await AsyncStorage.getItem('qrHistory');
             const history = existing ? JSON.parse(existing) : [];
-            history.unshift(newEntry); // Add new entry to the top
+            
+            // Check if an entry with the same text (Item ID for gtext) exists
+            const existingIndex = history.findIndex((entry: any) => {
+                if (entry.source === 'gtext') {
+                    return entry.data === text;
+                }
+                return false;
+            });
+
+            if (existingIndex !== -1) {
+                // Update existing entry and move to top
+                history.splice(existingIndex, 1); // Remove from current position
+                history.unshift(newEntry); // Add to top with updated data
+                console.log('Updated existing history entry with text:', text);
+            } else {
+                // Add new entry
+                history.unshift(newEntry); // Add new entry to the top
+                console.log('Added new history entry');
+            }
+            
             await AsyncStorage.setItem('qrHistory', JSON.stringify(history));
             console.log('Saved to history:', newEntry);
 

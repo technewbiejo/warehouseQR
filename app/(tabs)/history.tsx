@@ -1,14 +1,13 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useCallback, useState } from 'react';
-import { View, Text, TouchableOpacity, Alert, SafeAreaView, ScrollView, TextInput } from 'react-native';
+import { Alert, SafeAreaView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
-import { useRouter } from 'expo-router';
-import * as Clipboard from 'expo-clipboard';
-import { useFocusEffect } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
+import * as Clipboard from 'expo-clipboard';
+import { useRouter } from 'expo-router';
+import { Dimensions, FlatList } from 'react-native';
 import { cls, GlassCard } from '../theme';
-import { Dimensions } from 'react-native';
-import { FlatList } from 'react-native';
 
 const LIST_HEIGHT = Math.max(280, Math.floor(Dimensions.get('window').height * 0.48));
 
@@ -16,7 +15,7 @@ type HistoryEntry = {
     label: string;
     data: string;
     timestamp: string;
-    source: 'gtext' | 'gsmart';
+    source: 'gtext' | 'gsmart' | 'icbin';
 };
 
 const HistoryScreen = () => {
@@ -38,7 +37,60 @@ const HistoryScreen = () => {
         } else if (source === 'gsmart') {
             const [id1, part, lot, qty] = data.split(',');
             router.replace({ pathname: '/(tabs)/gsmart', params: { id1, part, lot, qty } });
+        } else if (source === 'icbin') {
+            // Format: DEVICE/ERP/MARKING/QUANTITY/TESTPROGRAM/BIN/DATE[/SERIAL]
+            const [device, erp, marking, quantity, testProgram, binValue, dateValue, serialValue] = data.split('/');
+            const params: Record<string, string> = {
+                device: device ?? '',
+                erp: erp ?? '',
+                marking: marking ?? '',
+                quantity: quantity ?? '',
+                testProgram: testProgram ?? '',
+                bin: binValue ?? '',
+                date: dateValue ?? '',
+            };
+            if (serialValue) {
+                params.serial = serialValue;
+            }
+            router.replace({
+                pathname: '/(tabs)/icbin',
+                params,
+            });
         }
+    };
+
+    const handleDelete = (entry: HistoryEntry) => {
+        Alert.alert(
+            'Delete Entry',
+            'Are you sure you want to delete this history entry?',
+            [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                    text: 'Delete',
+                    style: 'destructive',
+                    onPress: async () => {
+                        try {
+                            // Find and remove the entry from history
+                            const updatedHistory = history.filter((item) => {
+                                // Match by timestamp and data to ensure uniqueness
+                                return !(item.timestamp === entry.timestamp && item.data === entry.data);
+                            });
+
+                            // Update AsyncStorage
+                            await AsyncStorage.setItem('qrHistory', JSON.stringify(updatedHistory));
+
+                            // Update state
+                            setHistory(updatedHistory);
+                            console.log('Entry deleted from history');
+                        } catch (error) {
+                            console.error('Failed to delete entry:', error);
+                            Alert.alert('Error', 'Failed to delete entry. Please try again.');
+                        }
+                    },
+                },
+            ],
+            { cancelable: true }
+        );
     };
 
     useFocusEffect(
@@ -178,6 +230,10 @@ const HistoryScreen = () => {
                                         <Text className={cls.actionEditText}>Edit</Text>
                                         */}
 
+                                    </TouchableOpacity>
+
+                                    <TouchableOpacity onPress={() => handleDelete(item)} className="flex-row items-center ml-4 space-x-1">
+                                        <MaterialIcons name="delete-outline" size={16} color="#D5FF40" />
                                     </TouchableOpacity>
                                 </View>
                             </View>

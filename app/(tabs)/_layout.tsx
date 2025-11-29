@@ -1,6 +1,6 @@
 import { Tabs } from 'expo-router';
 import { ScanLine, FileText, Sparkles, History } from 'lucide-react-native';
-import { commonHeader, commonTabs, makeTabIcon } from '../theme';
+import { commonHeader,commonHeader1, commonTabs, makeTabIcon } from '../theme';
 import '../globals.css';
 
 export default function Layout() {
@@ -32,6 +32,15 @@ export default function Layout() {
                 }}
             />
             <Tabs.Screen
+                name="icbin"
+                options={{
+                    title: 'IC',
+                    tabBarIcon: makeTabIcon(Sparkles),
+                    ...commonHeader1,
+
+                }}
+            />
+            <Tabs.Screen
                 name="history"
                 options={{
                     title: 'History',
@@ -41,6 +50,7 @@ export default function Layout() {
             />
             <Tabs.Screen name="result/qr" options={{ title: 'QR Result', headerShown: false, href: null }} />
             <Tabs.Screen name="result/qrtext" options={{ title: 'QR Result', headerShown: false, href: null }} />
+            <Tabs.Screen name="result/qrbin" options={{ title: 'QR Result', headerShown: false, href: null }} />
         </Tabs>
     );
 }

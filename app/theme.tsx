@@ -1,7 +1,6 @@
 import React from 'react';
 import { View, ViewProps, TextProps } from 'react-native';
 import { BlurView } from 'expo-blur';
-import {LinearGradient} from "react-native-svg";
 
 // ======= PALETTE (dark + neon) =======
 export const colors = {
@@ -15,7 +14,7 @@ export const colors = {
     textMuted: 'text-[#6B7280]',
     // brand
     brand: '#131321',
-    lime: '#D5FF40',            // primary button
+    lime: '#D5FF40',            // primary button & focus outline
     // inputs
     inputBg: '#0F1115',
     inputBorder: '#2A2F37',
@@ -34,6 +33,13 @@ export const commonHeader = {
     headerTitleStyle: { color: '#FFFFFF', fontWeight: 'bold' as const },
 };
 
+export const commonHeader1 = {
+    headerShown: true,
+    headerTitle: 'IC BIN ',
+    headerTitleAlign: 'center' as const,
+    headerStyle: { backgroundColor: colors.brand },
+    headerTitleStyle: { color: '#FFFFFF', fontWeight: 'bold' as const },
+};
 // --- Global Tabs options (used by expo-router <Tabs screenOptions>) ---
 export const commonTabs = {
     headerShown: false,
@@ -52,11 +58,15 @@ export const commonTabs = {
     tabBarIconStyle: { marginTop: 6 },
 } as const;
 
+
 // ======= UTILITY CLASSNAMES (NativeWind) =======
 export const cls = {
     // layout
-    screen: `flex-1 bg-[#0C0D11] justify-center items-center px-4`,
+    screen1: `flex-1 bg-[#0C0D11] justify-center items-center px-3 `,
+    screen: `flex-1 bg-[#0C0D11] justify-center items-center px-4 pt-6`,
+
     group: `space-y-4`,
+    group1: `space-y-2`,
     mt6: `mt-6`,
     mt4: `mt-4`,
 
@@ -64,6 +74,7 @@ export const cls = {
     heading: `text-2xl font-extrabold ${colors.textPrimary} text-center mb-2`,
     subheading: `text-base ${colors.textSecondary} text-center mb-6`,
     label: `text-sm ${colors.textSecondary} mb-2`,
+    label1: `text-sm align ${colors.textSecondary} mb-2`,
 
     // inputs
     input: `rounded-lg px-4 py-4 text-base text-white`,
@@ -122,15 +133,13 @@ export const makeTabIcon =
                 <Icon color={focused ? colors.tabActive : colors.tabInactive} size={size} />
             </View>
         );
+
 // ======= GLASS CARD (component wrapper) =======
-// Use this instead of a plain View for the card shell
 export const GlassCard = ({
                               children,
                               className,
                               style,
                           }: ViewProps & { className?: string }) => {
-
-
     return (
         <View
             className={`w-full max-w-md rounded-2xl overflow-hidden`}
@@ -151,13 +160,10 @@ export const GlassCard = ({
                 {children}
             </BlurView>
         </View>
-
-
     );
 };
 
-
-// ======= INPUT SHELL (for consistent dark inputs) =======
+// ======= INPUT SHELL (original dark filled) =======
 export const InputShell = ({
                                children,
                                className,
@@ -182,5 +188,31 @@ export const InputShell = ({
     );
 };
 
-// ======= Title helpers (optional) =======
-export const Title = (p: TextProps) => <View><></></View>; // placeholder if you want typed text components later
+// ======= NEW OUTLINED INPUT SHELL (transparent bg + focus border) =======
+export const OutlinedInputShell = ({
+                                       children,
+                                       className,
+                                       style,
+                                       focused,
+                                   }: ViewProps & { className?: string; focused?: boolean }) => {
+    return (
+        <View
+            className={className}
+            style={[
+                {
+                    backgroundColor: 'transparent',
+                    borderColor: focused ? colors.lime : colors.inputBorder,
+                    borderWidth: 1.5,
+                    borderRadius: 12,
+                    paddingHorizontal: 12,
+                },
+                style,
+            ]}
+        >
+            {children}
+        </View>
+    );
+};
+
+// ======= Title helper (placeholder) =======
+export const Title = (p: TextProps) => <View><></></View>;

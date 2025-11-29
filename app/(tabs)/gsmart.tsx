@@ -74,7 +74,27 @@ const GSmart = () => {
         try {
             const existing = await AsyncStorage.getItem('qrHistory');
             const history = existing ? JSON.parse(existing) : [];
-            history.unshift(newEntry);
+            
+            // Check if an entry with the same Item ID (id1) exists
+            const existingIndex = history.findIndex((entry: any) => {
+                if (entry.source === 'gsmart') {
+                    const [existingId1] = entry.data.split(',');
+                    return existingId1 === id1;
+                }
+                return false;
+            });
+
+            if (existingIndex !== -1) {
+                // Update existing entry and move to top
+                history.splice(existingIndex, 1); // Remove from current position
+                history.unshift(newEntry); // Add to top with updated data
+                console.log('Updated existing history entry with Item ID:', id1);
+            } else {
+                // Add new entry
+                history.unshift(newEntry);
+                console.log('Added new history entry');
+            }
+            
             await AsyncStorage.setItem('qrHistory', JSON.stringify(history));
         } catch (e) {
             console.error('Failed to save history:', e);
