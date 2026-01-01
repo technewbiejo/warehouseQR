@@ -1,12 +1,21 @@
 import { Tabs } from 'expo-router';
 import { ScanLine, FileText, Sparkles, History } from 'lucide-react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { commonHeader,commonHeader1, commonTabs, makeTabIcon } from '../theme';
 import '../globals.css';
 
 export default function Layout() {
+    const insets = useSafeAreaInsets();
+    
     return (
-
-        <Tabs screenOptions={commonTabs}>
+        <Tabs screenOptions={{
+            ...commonTabs,
+            tabBarStyle: {
+                ...commonTabs.tabBarStyle,
+                paddingBottom: Math.max(insets.bottom, 8),
+                height: (commonTabs.tabBarStyle?.height as number || 72) + Math.max(insets.bottom - 8, 0),
+            },
+        }}>
             <Tabs.Screen
                 name="index"
                 options={{
